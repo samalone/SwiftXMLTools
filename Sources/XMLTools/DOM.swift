@@ -196,6 +196,17 @@ public class Element: NamedNode {
         }
         return copy
     }
+    
+    public override func clone(parent: Node) -> Element {
+        let copy = Element(parent: parent, name: nodeName)
+        for a in attributes {
+            copy.attributes[a.key] = a.value.clone(parent: copy)
+        }
+        for n in childNodes {
+            copy.childNodes.append(n.clone(parent: copy))
+        }
+        return copy
+    }
 }
 
 public class TextNode: Node {
