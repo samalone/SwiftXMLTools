@@ -23,6 +23,14 @@ public class Node {
         }
         return nil
     }
+    
+    public func clone() -> Node {
+        return Node(parent: nil)
+    }
+    
+    public func clone(parent: Node) -> Node {
+        return Node(parent: parent)
+    }
 }
 
 public class NamedNode: Node {
@@ -42,6 +50,14 @@ public class NamedNode: Node {
         return nodeName
     }
     
+    public override func clone() -> NamedNode {
+        return NamedNode(name: nodeName)
+    }
+    
+    public override func clone(parent: Node) -> NamedNode {
+        return NamedNode(parent: parent, name: nodeName)
+    }
+    
 }
 
 public class Attribute: NamedNode {
@@ -54,6 +70,24 @@ public class Attribute: NamedNode {
     init (parent: Node, name: QName, value: String) {
         self.value = value
         super.init(parent: parent, name: name)
+    }
+    
+    init (parent: Node, from: Attribute) {
+        self.value = from.value
+        super.init(parent: parent, name: from.nodeName)
+    }
+    
+    init (from: Attribute) {
+        self.value = from.value
+        super.init(name: from.nodeName)
+    }
+    
+    public override func clone() -> Attribute {
+        return Attribute(from: self)
+    }
+    
+    public override func clone(parent: Node) -> Attribute {
+        return Attribute(parent: parent, from: self)
     }
     
 }
@@ -90,6 +124,13 @@ public class Element: NamedNode {
     @discardableResult
     public func appendAttribute(_ name: QName, withValue value: String) -> Attribute {
         let attr = Attribute(parent: self, name: name, value: value)
+        attributes[attr.nodeName] = attr
+        return attr
+    }
+    
+    @discardableResult
+    public func appendAttribute(_ name: QName) -> Attribute {
+        let attr = Attribute(parent: self, name: name)
         attributes[attr.nodeName] = attr
         return attr
     }
@@ -144,6 +185,17 @@ public class Element: NamedNode {
         }
         return nil
     }
+    
+    public override func clone() -> Element {
+        let copy = Element(name: nodeName)
+        for a in attributes {
+            copy.attributes[a.key] = a.value.clone(parent: copy)
+        }
+        for n in childNodes {
+            copy.childNodes.append(n.clone(parent: copy))
+        }
+        return copy
+    }
 }
 
 public class TextNode: Node {
@@ -152,6 +204,10 @@ public class TextNode: Node {
     init (parent: Node, value: String) {
         self.value = value
         super.init(parent: parent)
+    }
+    
+    public override func clone(parent: Node) -> TextNode {
+        return TextNode(parent: parent, value: value)
     }
     
 }
@@ -164,9 +220,17 @@ public class CommentNode: Node {
         super.init(parent: parent)
     }
     
+    public override func clone(parent: Node) -> CommentNode {
+        return CommentNode(parent: parent, value: value)
+    }
+    
 }
 
 public class CDATANode: TextNode {
+    
+    public override func clone(parent: Node) -> CDATANode {
+        return CDATANode(parent: parent, value: value)
+    }
     
 }
 
@@ -178,6 +242,10 @@ public class ProcessingInstruction: Node {
         self.target = target
         self.data = data
         super.init(parent: parent)
+    }
+    
+    public override func clone(parent: Node) -> ProcessingInstruction {
+        return ProcessingInstruction(parent: parent, target: target, data: data)
     }
 }
 
