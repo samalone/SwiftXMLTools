@@ -31,6 +31,13 @@ public class Node {
     public func clone(parent: Node) -> Node {
         return Node(parent: parent)
     }
+    
+    public func sanityCheck() {
+        for n in childNodes {
+            assert(n.parentNode == self)
+            n.sanityCheck()
+        }
+    }
 }
 
 public class NamedNode: Node {
