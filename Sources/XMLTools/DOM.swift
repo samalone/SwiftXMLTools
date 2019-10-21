@@ -34,7 +34,7 @@ public class Node {
     
     public func sanityCheck() {
         for n in childNodes {
-            assert(n.parentNode == self)
+            assert(n.parentNode === self)
             n.sanityCheck()
         }
     }
